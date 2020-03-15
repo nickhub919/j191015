@@ -1,6 +1,10 @@
 # DOC_BioBERT_DDI
 Extracting DDIs from biomedical documents with BioBERT and Multi-Entity Atttntion
 
+BioBERT version = 1.0
+python version = 3.5
+keras_bert version = 1.4
+
 How to run
 
 1. Download BioBERT model from https://github.com/naver/biobert-pretrained, and copy it to the **BioBERTModel** Folder, note that the corresponding file should be placed in the corresponding folder.
