@@ -7,4 +7,4 @@ How to run
 2. Download DDI2013 Corpus and copy it to the **Corpus** Folder, , note that the corresponding file should be placed in the corresponding folder.
 3. Run *load_data.py* to preprocess the corpus.
 4. Run *bert_preprocess_sentence.py* to get the BERT tokens of the corpus, results save as *.pkl*. 
-5. Run *main.py* to run the model, the weight of the model will be saved in the **model** folder, the PRF values will be saved in the **res_log** folder. 
+5. Run *main.py* to run the model, the weights of the model will be saved in the **model** folder, the PRF values will be saved in the **res_log** folder. 
