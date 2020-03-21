@@ -79,80 +79,6 @@ def self_att_outshape(inputshape):
     output_shape=[shape1[0],shape1[1]]
     return  tuple(output_shape)
 
-
-def bulidModel_4():
-    e1_kno = Input(shape=(1,), dtype='float32', name='e1_kno')
-    e2_kno = Input(shape=(1,), dtype='float32', name='e2_kno')
-    main_input = Input(shape=(154,), dtype='float32', name='main_input')  # (?,154)
-    # embedding_layer = Embedding(8000 + 1, 200, mask_zero=True, trainable=True)
-    embedding_layer = Embedding(num_word + 1, 200, mask_zero=True, trainable=False, weights=[embedding_matrix])
-    doc_embedding_layer = Embedding(len(doc_vec_embeding), 200, mask_zero=True, trainable=True,
-                                    weights=[doc_vec_embeding])
-    e1_doc_vec = doc_embedding_layer(e1_kno)
-    e2_doc_vec = doc_embedding_layer(e2_kno)
-    e1_doc_vec = Lambda(change_shape, output_shape=out_change_shape)(e1_doc_vec)
-    e2_doc_vec = Lambda(change_shape, output_shape=out_change_shape)(e2_doc_vec)
-    wordVector = embedding_layer(main_input)  # (?,154,200)
-    # lstm
-    encoded_seq = Bidirectional(GRU(300, dropout=0.5, recurrent_dropout=0.5, return_sequences=True))(wordVector)
-    slice_1 = Lambda(slice, arguments={'h1': 153, 'h2': 154})(encoded_seq)
-
-    e1_doc_vec= Dense(200,activation='relu')(e1_doc_vec)
-    e2_doc_vec = Dense(200, activation='relu')(e2_doc_vec)
-    distance = dis(e1_doc_vec,e2_doc_vec)
-    seq=TimeDistributed(Dense(200,activation='relu'))(encoded_seq)
-
-    att_dot_1=Dot()([seq,e1_doc_vec])
-    att_score_1=Softmax()(att_dot_1)
-    att_res_1=Dot()(att_score_1,encoded_seq)
-
-    att_dot_2 = Dot()([seq, e2_doc_vec])
-    att_score_2 = Softmax()(att_dot_2)
-    att_res_2= Dot()(att_score_2, encoded_seq)
-
-    z=concatenate([att_res_1,att_res_2])
-    main_output = Dense(5, activation='softmax', name='main_output')(z)  # (?,5)
-    model = Model(inputs=[main_input,e1_kno, e2_kno], outputs=main_output)
-    model.compile(optimizer="RMSprop", loss='categorical_crossentropy', metrics=['accuracy'])
-    print(model.summary())
-    return model
-
-def bulidModel_3():
-    e1_kno = Input(shape=(1,), dtype='float32', name='e1_kno')
-    e2_kno = Input(shape=(1,), dtype='float32', name='e2_kno')
-    main_input = Input(shape=(154,), dtype='float32', name='main_input')  # (?,154)
-    # embedding_layer = Embedding(8000 + 1, 200, mask_zero=True, trainable=True)
-    embedding_layer = Embedding(num_word + 1, 200, mask_zero=True, trainable=False, weights=[embedding_matrix])
-    doc_embedding_layer = Embedding(len(doc_vec_embeding), 200, mask_zero=True, trainable=True,
-                                    weights=[doc_vec_embeding])
-    e1_doc_vec = doc_embedding_layer(e1_kno)
-    e2_doc_vec = doc_embedding_layer(e2_kno)
-    e1_doc_vec = Lambda(change_shape, output_shape=out_change_shape)(e1_doc_vec)
-    e2_doc_vec = Lambda(change_shape, output_shape=out_change_shape)(e2_doc_vec)
-    wordVector = embedding_layer(main_input)  # (?,154,200)
-    # lstm
-    encoded_seq = Bidirectional(GRU(300, dropout=0.5, recurrent_dropout=0.5, return_sequences=True))(wordVector)
-    e1_doc_vec= Dense(200,activation='relu')(e1_doc_vec)
-    e2_doc_vec = Dense(200, activation='relu')(e2_doc_vec)
-
-    seq=TimeDistributed(Dense(200,activation='relu'))(encoded_seq)
-
-    att_dot_1=Dot()([seq,e1_doc_vec])
-    att_score_1=Softmax()(att_dot_1)
-    att_res_1=Dot()(att_score_1,encoded_seq)
-
-    att_dot_2 = Dot()([seq, e2_doc_vec])
-    att_score_2 = Softmax()(att_dot_2)
-    att_res_2= Dot()(att_score_2, encoded_seq)
-
-    z=concatenate([att_res_1,att_res_2])
-    main_output = Dense(5, activation='softmax', name='main_output')(z)  # (?,5)
-    model = Model(inputs=[main_input,e1_kno, e2_kno], outputs=main_output)
-    model.compile(optimizer="Adam", loss='categorical_crossentropy', metrics=['accuracy'])
-    myad=Adam()
-    print(model.summary())
-    return model
-
 def change_shape(input):
     output = K.squeeze(input, axis=1)  # (B, L)
     return output
@@ -161,26 +87,6 @@ def out_change_shape(input_shape):
     inputshape=(list)(input_shape)
     out_shape=[inputshape[0],inputshape[2]]
     return tuple(out_shape)
-
-
-def build_based_model(): #baseline
-    e1_kno = Input(shape=(1,), dtype='float32', name='e1_kno')
-    e2_kno = Input(shape=(1,), dtype='float32', name='e2_kno')
-    main_input = Input(shape=(154,), dtype='float32', name='main_input')  # (?,154)
-    #embedding_layer = Embedding(8000 + 1, 200, mask_zero=True, trainable=True)
-    embedding_layer=Embedding(num_word + 1, 200, mask_zero=True,trainable=False, weights=[embedding_matrix])
-    doc_embedding_layer=Embedding(len(doc_vec_embeding),200,mask_zero=True,trainable=True, weights=[doc_vec_embeding])
-    wordVector = embedding_layer(main_input)  # (?,154,200)
-    # lstm
-    encoded_seq = Bidirectional(GRU(300, dropout=0.5, recurrent_dropout=0.5,return_sequences=True))(wordVector)
-    slice_1 = Lambda(slice, arguments={'h1': 153, 'h2': 154})(encoded_seq)
-    slice_1 =Lambda(change_shape,output_shape=out_change_shape)(slice_1)
-    z= Dense(256, activation='tanh')(slice_1)
-    main_output = Dense(5, activation='softmax', name='main_output')(z)  # (?,5)
-    model = Model(inputs=[main_input, e1_kno, e2_kno], outputs=main_output)
-    model.compile(optimizer="Adam", loss='categorical_crossentropy', metrics=['accuracy'])
-    print(model.summary())
-    return model
 
 def gate_mix(input):
     last_step=input[0]
@@ -194,103 +100,6 @@ def gate_outshape(inputshape):
     shape=(list)(inputshape[0])
     outshap=[shape[0],shape[1]]
     return outshap
-
-def build_entity_att(): #71.3
-    e1_kno = Input(shape=(1,), dtype='float32', name='e1_kno')
-    e2_kno = Input(shape=(1,), dtype='float32', name='e2_kno')
-    main_input = Input(shape=(154,), dtype='float32', name='main_input')  # (?,154)
-    #embedding_layer = Embedding(8000 + 1, 200, mask_zero=True, trainable=True)
-    embedding_layer = Embedding(num_word + 1, 200, mask_zero=True, trainable=False, weights=[embedding_matrix])
-    doc_embedding_layer = Embedding(len(doc_vec_embeding), 200, mask_zero=True, trainable=True,
-                                    weights=[doc_vec_embeding])
-    e1_doc_vec = doc_embedding_layer(e1_kno)
-    e2_doc_vec = doc_embedding_layer(e2_kno)
-    e1_doc_vec = Lambda(change_shape, output_shape=out_change_shape)(e1_doc_vec)
-    e2_doc_vec = Lambda(change_shape, output_shape=out_change_shape)(e2_doc_vec)
-    e1_doc_vec = Dense(600,activation='relu')(e1_doc_vec)
-    e2_doc_vec = Dense(600, activation='relu')(e2_doc_vec)
-    wordVector = embedding_layer(main_input)  # (?,154,200)
-    # lstm
-    encoded_seq = Bidirectional(GRU(300, dropout=0.5, recurrent_dropout=0.5, return_sequences=True))(wordVector)
-    slice_1 = Lambda(slice, arguments={'h1': 153, 'h2': 154})(encoded_seq)
-    slice_1 = Lambda(change_shape, output_shape=out_change_shape)(slice_1)
-    att_e1=NormalAttention()([e1_doc_vec,encoded_seq])
-    att_e2 = NormalAttention()([e2_doc_vec, encoded_seq])
-    z=concatenate([slice_1,att_e1,att_e2])
-    z=Dropout(0.3)(z)
-    z = Dense(256 ,activation='tanh')(z)
-
-    main_output = Dense(5, activation='softmax', name='main_output')(z)  # (?,5)
-    model = Model(inputs=[main_input, e1_kno, e2_kno], outputs=main_output)
-    model.compile(optimizer="Adam", loss='categorical_crossentropy', metrics=['accuracy'])
-    print(model.summary())
-    return model
-
-def build_att_konw_back():
-    e1_kno = Input(shape=(1,), dtype='float32', name='e1_kno')
-    e2_kno = Input(shape=(1,), dtype='float32', name='e2_kno')
-    main_input = Input(shape=(154,), dtype='float32', name='main_input')  # (?,154)
-    # embedding_layer = Embedding(8000 + 1, 200, mask_zero=True, trainable=True)
-    embedding_layer = Embedding(num_word + 1, 200, mask_zero=True, trainable=False, weights=[embedding_matrix])
-    doc_embedding_layer = Embedding(len(doc_vec_embeding), 200, mask_zero=True, trainable=True,
-                                    weights=[doc_vec_embeding])
-    e1_doc_vec = doc_embedding_layer(e1_kno)
-    e2_doc_vec = doc_embedding_layer(e2_kno)
-    e1_doc_vec = Lambda(change_shape, output_shape=out_change_shape)(e1_doc_vec)
-    e2_doc_vec = Lambda(change_shape, output_shape=out_change_shape)(e2_doc_vec)
-    e1_doc_vec = Dense(600, activation='relu')(e1_doc_vec)
-    e2_doc_vec = Dense(600, activation='relu')(e2_doc_vec)
-    sub = Subtract()([e1_doc_vec, e2_doc_vec])
-    wordVector = embedding_layer(main_input)  # (?,154,200)
-    # lstm
-    encoded_seq = Bidirectional(GRU(300, dropout=0.5, recurrent_dropout=0.5, return_sequences=True))(wordVector)
-    slice_1 = Lambda(slice, arguments={'h1': 153, 'h2': 154})(encoded_seq)
-    slice_1 = Lambda(change_shape, output_shape=out_change_shape)(slice_1)
-    all_v=concatenate([sub,e1_doc_vec,e2_doc_vec])
-    b=Dense(600,activation='relu')(all_v)
-
-    z = concatenate([slice_1,b])
-    z = Dropout(0.3)(z)
-    z = Dense(256, activation='tanh')(z)
-
-    main_output = Dense(5, activation='softmax', name='main_output')(z)  # (?,5)
-    model = Model(inputs=[main_input, e1_kno, e2_kno], outputs=main_output)
-    model.compile(optimizer="Adam", loss='categorical_crossentropy', metrics=['accuracy'])
-    print(model.summary())
-    return model
-
-def build_dis_att():
-    e1_kno = Input(shape=(1,), dtype='float32', name='e1_kno')
-    e2_kno = Input(shape=(1,), dtype='float32', name='e2_kno')
-    main_input = Input(shape=(154,), dtype='float32', name='main_input')  # (?,154)
-    # embedding_layer = Embedding(8000 + 1, 200, mask_zero=True, trainable=True)
-    embedding_layer = Embedding(num_word + 1, 200, mask_zero=True, trainable=False, weights=[embedding_matrix])
-    doc_embedding_layer = Embedding(len(doc_vec_embeding), 200, mask_zero=True, trainable=True,
-                                    weights=[doc_vec_embeding])
-    e1_doc_vec = doc_embedding_layer(e1_kno)
-    e2_doc_vec = doc_embedding_layer(e2_kno)
-    e1_doc_vec = Lambda(change_shape, output_shape=out_change_shape)(e1_doc_vec)
-    e2_doc_vec = Lambda(change_shape, output_shape=out_change_shape)(e2_doc_vec)
-    e1_doc_vec = Dense(600, activation='relu')(e1_doc_vec)
-    e2_doc_vec = Dense(600, activation='relu')(e2_doc_vec)
-    sub=Subtract()([e1_doc_vec,e2_doc_vec])
-    wordVector = embedding_layer(main_input)  # (?,154,200)
-    # lstm
-    encoded_seq = Bidirectional(GRU(300, dropout=0.5, recurrent_dropout=0.5, return_sequences=True))(wordVector)
-    slice_1 = Lambda(slice, arguments={'h1': 153, 'h2': 154})(encoded_seq)
-    slice_1 = Lambda(change_shape, output_shape=out_change_shape)(slice_1)
-    att_sub = NormalAttention()([sub, encoded_seq])
-    att_e1 = Lambda(my_entity_att, output_shape=out_entity_att)([e1_doc_vec, encoded_seq])
-    att_e2 = Lambda(my_entity_att, output_shape=out_entity_att)([e2_doc_vec, encoded_seq])
-    z = concatenate([slice_1,att_sub,att_e1,att_e2])
-    z = Dropout(0.3)(z)
-    z = Dense(256, activation='tanh')(z)
-    main_output = Dense(5, activation='softmax', name='main_output')(z)  # (?,5)
-    model = Model(inputs=[main_input, e1_kno, e2_kno], outputs=main_output)
-
-    model.compile(optimizer="Adam", loss='categorical_crossentropy', metrics=['accuracy'])
-    print(model.summary())
-    return model
 
 def get_entity_vector_zhou(inputs):
     sequences, entity_mask = inputs
@@ -523,51 +332,6 @@ def out_entity_att(input_shape):
     outshape=(tuple)(entity_shape)
     return outshape
 
-def build_entity_att_copy():
-    e1_kno = Input(shape=(1,), dtype='float32', name='e1_kno')
-    e2_kno = Input(shape=(1,), dtype='float32', name='e2_kno')
-    main_input = Input(shape=(154,), dtype='float32', name='main_input')  # (?,154)
-    #embedding_layer = Embedding(8000 + 1, 200, mask_zero=True, trainable=True)
-    embedding_layer = Embedding(num_word + 1, 200, mask_zero=True, trainable=False, weights=[embedding_matrix])
-    doc_embedding_layer = Embedding(len(doc_vec_embeding), 200, mask_zero=True, trainable=True,
-                                    weights=[doc_vec_embeding])
-    e1_doc_vec = doc_embedding_layer(e1_kno)
-    e2_doc_vec = doc_embedding_layer(e2_kno)
-    e1_doc_vec = Lambda(change_shape, output_shape=out_change_shape)(e1_doc_vec)
-    e2_doc_vec = Lambda(change_shape, output_shape=out_change_shape)(e2_doc_vec)
-    e1_doc_vec = Dense(600, activation='relu')(e1_doc_vec)
-    e2_doc_vec = Dense(600, activation='relu')(e2_doc_vec)
-    wordVector = embedding_layer(main_input)  # (?,154,200)
-    # lstm
-    encoded_seq = Bidirectional(GRU(300, dropout=0.5, recurrent_dropout=0.5, return_sequences=True))(wordVector)
-    slice_1 = Lambda(slice, arguments={'h1': 153, 'h2': 154})(encoded_seq)
-    slice_1 = Lambda(change_shape, output_shape=out_change_shape)(slice_1)
-
-    att_e1=Lambda(my_entity_att, output_shape=out_entity_att)([e1_doc_vec,encoded_seq])
-    att_e2=Lambda(my_entity_att, output_shape=out_entity_att)([e2_doc_vec,encoded_seq])
-    z = concatenate([slice_1, att_e1, att_e2])
-    z = Dropout(0.3)(z)
-    z = Dense(256, activation='tanh')(z)
-
-    main_output = Dense(5, activation='softmax', name='main_output')(z)  # (?,5)
-    model = Model(inputs=[main_input, e1_kno, e2_kno], outputs=main_output)
-    model.compile(optimizer="Adam", loss='categorical_crossentropy', metrics=['accuracy'])
-    print(model.summary())
-    return model
-
-    # lstm
-    z = Bidirectional(GRU(300, dropout=0.3, recurrent_dropout=0.3))(all_vec)  # (?,?,600)
-    print("biGRU z:", z.shape)
-    distance=dis(e1_kno,e2_kno)
-    z=concatenate([z,distance],axis=-1)
-    main_output = Dense(5, activation='softmax', name='main_output')(z)   # (?,5)
-    print("main_output:", main_output.shape)
-    model = Model(inputs=[main_input,e1_pos,e2_pos,e1_kno,e2_kno], outputs=main_output)
-
-    model.compile(optimizer="RMSprop", loss='categorical_crossentropy', metrics=['accuracy'])
-    print(model.summary())
-    return model
-
 def onehotDecoder(predicted):
     predict=[]
     for p in predicted:
@@ -621,41 +385,7 @@ def trainModel(model, modelName,Traininput, traininstanceResult,
         test_input = {'bert_token':test_bert_mask, 'bert_segment':test_bert_segment,
                      'kno_e1':test_kno_e1, 'kno_e2':test_kno_e2,
                      'bert_m1':test_bert_zhou_m1, 'bert_m2':test_bert_zhou_m2}
-
-    elif modelName = 'build_dis_att_with_bert_zhou':
-        train_input = {'bert_token':train_bert_token, 'bert_segment':train_bert_segment,
-                       'bert_m1':train_bert_zhou_m1, 'bert_m2':train_bert_zhou_m2}
-        dev_input = {'bert_token':dev_bert_token, 'bert_segment':dev_bert_segment,
-                     'bert_m1':dev_bert_zhou_m1, 'bert_m2':dev_bert_zhou_m2}
-        test_input = {'bert_token':test_bert_mask, 'bert_segment':test_bert_segment,
-                     'bert_m1':test_bert_zhou_m1, 'bert_m2':test_bert_zhou_m2}
-
-    elif modelName = 'build_dis_att_with_bert_zhou2':
-        train_input = {'bert_token':train_bert_token, 'bert_segment':train_bert_segment,
-                        'bert_m1':train_bert_zhou_m1, 'bert_m2':train_bert_zhou_m2}
-        dev_input = {'bert_token':dev_bert_token, 'bert_segment':dev_bert_segment,
-                        'bert_m1':dev_bert_zhou_m1, 'bert_m2':dev_bert_zhou_m2}
-        test_input = {'bert_token':test_bert_mask, 'bert_segment':test_bert_segment,
-                        'bert_m1':test_bert_zhou_m1, 'bert_m2':test_bert_zhou_m2}
-
-    elif modelName = 'build_dis_att_with_bert_zhu1':
-        train_input = {'bert_token':train_bert_token, 'bert_segment':train_bert_segment,
-                       'bert_m1':train_bert_zhou_m1, 'bert_m2':train_bert_zhou_m2,
-                       'bert_entity1':train_bert_entity1, 'bert_entity2':train_bert_entity2}
-        dev_input = {'bert_token':dev_bert_token, 'bert_segment':dev_bert_segment,
-                     'bert_m1':dev_bert_zhou_m1, 'bert_m2':dev_bert_zhou_m2,
-                     'bert_entity1':dev_bert_entity1, 'bert_entity2':dev_bert_entity2}
-        test_input = {'bert_token':test_bert_mask, 'bert_segment':test_bert_segment,
-                      'bert_m1':test_bert_zhou_m1, 'bert_m2':test_bert_zhou_m2,
-                      'bert_entity1':test_bert_entity1, 'bert_entity2':test_bert_entity2}
-
-    elif modelName = 'build_dis_att_with_bert':
-        train_input = {'bert_token':train_bert_token, 'bert_segment':train_bert_segment,
-                       'kno_e1':train_kno_e1, 'kno_e2':train_kno_e2,}
-        dev_input = {'bert_token':dev_bert_token, 'bert_segment':dev_bert_segment,
-                     'kno_e1':dev_kno_e1, 'kno_e2':dev_kno_e2}
-        test_input = {'bert_token':test_bert_mask, 'bert_segment':test_bert_segment,
-                     'kno_e1':test_kno_e1, 'kno_e2':test_kno_e2}
+        
      for i in range(150):
         print("迭代次数：", i+1)
         model.fit(train_input, traininstanceResult, epochs=1, batch_size=batch_size)
@@ -757,75 +487,6 @@ def predict(Input, model_path):
             PREDICTIONSFILE.write("{}\n".format(instanceResult))
         PREDICTIONSFILE.close()
     return predicted
-
-
-def produce_pos_vector(index,maxlen):
-    vector=[]
-    start=-index
-    for i in range(maxlen):
-        vector.append(start)
-        start+=1
-    return vector
-
-def pos_feature(trainIstanceDrugpath,testIstanceDrugpath):
-    maxlen=154
-    maxpos=-9999
-    minpos=9999
-    train_e1_pos_vec=[]
-    train_e2_pos_vec=[]
-    test_e1_pos_vec=[]
-    test_e2_pos_vec = []
-    index=0
-    for sentence in trainIstanceDrugpath:
-        token_list = text_to_word_sequence(sentence,filters='!"#%&()*+,\'-./:;<=>?@[\]^_`{|}~\t\n',lower=True)
-        try:
-            entity1_pos=token_list.index('drug1')
-            maxpos = max(maxpos, entity1_pos)
-            minpos = min(minpos, entity1_pos)
-            vec=produce_pos_vector(entity1_pos,maxlen)
-            train_e1_pos_vec.append(vec)
-        except:
-            print(sentence)
-        try:
-            entity2_pos = token_list.index('drug2')
-            maxpos = max(maxpos, entity2_pos)
-            minpos = min(minpos, entity2_pos)
-            vec = produce_pos_vector(entity2_pos,maxlen)
-            train_e2_pos_vec.append(vec)
-        except:
-            print(sentence)
-
-    for sentence in testIstanceDrugpath:
-        e1=0
-        e2=0
-        token_list = text_to_word_sequence(sentence,filters='!"#%&()*+,\'-./:;<=>?@[\]^_`{|}~\t\n',lower=True)
-        try:
-            entity1_pos=token_list.index('drug1')
-            maxpos = max(maxpos, entity1_pos)
-            minpos = min(minpos, entity1_pos)
-            vec = produce_pos_vector(entity1_pos,maxlen)
-            test_e1_pos_vec.append(vec)
-            e1+=1
-        except:
-            print(sentence)
-        try:
-            entity2_pos = token_list.index('drug2')
-            maxpos = max(maxpos, entity2_pos)
-            minpos = min(minpos, entity2_pos)
-            vec = produce_pos_vector(entity2_pos,maxlen)
-            test_e2_pos_vec.append(vec)
-            e2+=1
-        except:
-            print(sentence)
-        if(e1!=e2):
-            print('a')
-    train_e1_pos_vec=np.reshape(train_e1_pos_vec,(len(train_e1_pos_vec),maxlen))
-    train_e2_pos_vec=np.reshape(train_e2_pos_vec,(len(train_e2_pos_vec),maxlen))
-    test_e1_pos_vec=np.reshape(test_e1_pos_vec,(len(test_e1_pos_vec),maxlen))
-    test_e2_pos_vec=np.reshape(test_e2_pos_vec,(len(test_e2_pos_vec),maxlen))
-    print('max pos is ',maxpos)
-    print('min pos is ',minpos)
-    return train_e1_pos_vec,train_e2_pos_vec,test_e1_pos_vec,test_e2_pos_vec
 
 def evalution(predicted,testinstanceResult):
     predict = onehotDecoder(predicted)
