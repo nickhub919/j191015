@@ -30,9 +30,9 @@ pair_type=[]
 maxlen=154
 traindatapath="Train2013/all/"
 testdatapath="Test2013/all/"
-trainIstanceResultpath=".\\Train2013\\trainIstanceResult.txt"
-trainIstancepath=".\\Train2013\\trainIstance.txt"
-ProcessedtrainIstancepath=".\\Train2013\\ProcessedtestIstance.txt"
+trainIstanceResultpath="./Train2013/trainIstanceResult.txt"
+trainIstancepath="./Train2013/trainIstance.txt"
+ProcessedtrainIstancepath="./Train2013/ProcessedtestIstance.txt"
 
 
 #""" Gather all .xml files in Train folder """
