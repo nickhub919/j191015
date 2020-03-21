@@ -1,6 +1,4 @@
-# DOC_BioBERT_DDI
-Extracting DDIs from biomedical documents with BioBERT and Multi-Entity Atttntion
-
+# JBI-19-1015
 BioBERT version = 1.0  
 python version = 3.5  
 keras_bert version = 0.71.0  
@@ -8,7 +6,7 @@ keras version = 2.1.5
 tensorflow version = 1.12.0  
 numpy version = 1.15.4  
 
-How to run
+**How to run**
 
 1. Download BioBERT model from https://github.com/naver/biobert-pretrained, and copy it to the **BioBERTModel** Folder, note that the corresponding file should be placed in the corresponding folder.
 2. Download DDI2013 Corpus and copy it to the **Corpus** Folder,  note that the corresponding file should be placed in the corresponding folder.
