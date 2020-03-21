@@ -1,9 +1,12 @@
 # DOC_BioBERT_DDI
 Extracting DDIs from biomedical documents with BioBERT and Multi-Entity Atttntion
 
-BioBERT version = 1.0
-python version = 3.5
-keras_bert version = 1.4
+BioBERT version = 1.0  
+python version = 3.5  
+keras_bert version = 0.71.0  
+keras version = 2.1.5  
+tensorflow version = 1.12.0  
+numpy version = 1.15.4  
 
 How to run
 
