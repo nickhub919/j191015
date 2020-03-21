@@ -1,8 +1,7 @@
 '''
 此文件实现将DDI文本转换成为适合bert训练的文本
-1. 将两个实体替换成 ##日 和 ##月
-2. 生成文本的token id
-3. 统计token序列的最大长度233
+1. 生成文本的token id
+2. 统计token序列的最大长度233
 '''
 from keras_bert import Tokenizer
 import codecs
@@ -11,13 +10,13 @@ import pickle
 import math
 
 max_sent_len = 0
-org_train_txt = 'F:/project_gyk/MyDDI(dependency)tests/Train2013/trainCsentence_token.txt'
-org_test_txt = 'F:/project_gyk/MyDDI(dependency)tests/Test2013/testCsentence_token.txt'
-save_train_pkl = 'F:/project_gyk/MyDDI(dependency)tests/Train2013/trainCsentence_bert_token.pkl'
-save_test_pkl = 'F:/project_gyk/MyDDI(dependency)tests/Test2013/testCsentence_bert_token.pkl'
+org_train_txt = './Train2013/trainCsentence_token.txt'
+org_test_txt = './Test2013/testCsentence_token.txt'
+save_train_pkl = './Train2013/trainCsentence_bert_token.pkl'
+save_test_pkl = './Test2013/testCsentence_bert_token.pkl'
 
 #初始化tokenizer
-pretrained_path = 'F:/embedding_biobert/pubmed_pmc_470k/'
+pretrained_path = './BioBERTModel/pubmed_pmc_470k/'
 vocab_path = os.path.join(pretrained_path, 'vocab.txt')
 token_dict = {}
 with codecs.open(vocab_path, 'r', 'utf8') as reader:
@@ -41,8 +40,8 @@ test_mask_save_list = []
 # 修改句子，按照最大长度250来处理，实际最大长度233
 with open(org_train_txt, 'rt', encoding='utf-8') as readf:
     for line in readf:
-        newline = line.replace('drug1', '##日')
-        newline = newline.replace('drug2', '##月')
+        #newline = line.replace('drug1', '##日')
+        #newline = newline.replace('drug2', '##月')
         ids, segments, mask1, mask2 = tokenizer.encode(newline, max_len=250)
         train_save_list.append(ids)
         train_segment_save_list.append(segments)
@@ -58,8 +57,8 @@ with open(save_train_pkl, 'wb') as writef:
 
 with open(org_test_txt, 'rt', encoding='utf-8') as readf:
     for line in readf:
-        newline = line.replace('drug1', '##日')
-        newline = newline.replace('drug2', '##月')
+        #newline = line.replace('drug1', '##日')
+        #newline = newline.replace('drug2', '##月')
         ids, segments, mask1, mask2 = tokenizer.encode(newline, max_len=250)
         test_save_list.append(ids)
         test_segment_save_list.append(segments)
