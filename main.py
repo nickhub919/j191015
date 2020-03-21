@@ -38,33 +38,19 @@ batch_size = 128
 
 #bert config
 layer_num = 12
-pretrained_path = 'F:/embedding_biobert/pubmed_pmc_470k/'
+pretrained_path = './BioBERTModel/pubmed_pmc_470k/'
 config_path = os.path.join(pretrained_path, 'bert_config.json')
 checkpoint_path = os.path.join(pretrained_path, 'biobert_model.ckpt')
 vocab_path = os.path.join(pretrained_path, 'vocab.txt')
+# wordVectorPath = "./wordvector/public/wikipedia-pubmed-and-PMC-w2v"
+trainIstanceDrugpath = "./Train2013/dIstance.txt"
+testIstanceDrugpath = "./Test2013/Istance.txt"
+trainSentencePath = "./Train2013/trainCsentence_token.txt"
+testSentencePath = "./Test2013/testCsentence_token.txt"
 
-#路径
-wordVectorPath = ".\\wordvector\\public\\wikipedia-pubmed-and-PMC-w2v"
-
-trainIstanceDrugpath = ".\\Train2013\\dIstance.txt"
-testIstanceDrugpath = ".\\Test2013\\Istance.txt"
-
-trainSentencePath = ".\\Train2013\\trainCsentence_token.txt"
-testSentencePath = ".\\Test2013\\testCsentence_token.txt"
-
-trainIstanceDrugPosition1Processed = ".\\Train2013\\ProcessedtrainIstanceDrugPosition1.txt"
-trainIstanceDrugPosition2Processed = ".\\Train2013\\ProcessedtrainIstanceDrugPosition2.txt"
-testIstanceDrugPosition1Processed = ".\\Test2013\\ProcessedtestIstanceDrugPosition1.txt"
-testIstanceDrugPosition2Processed = ".\\Test2013\\ProcessedtestIstanceDrugPosition2.txt"
-
-trainSDPpath = ".\\Train2013\\train_gdep11.txt_sdp"
-testSDPpath = ".\\Test2013\\test_gdep1.txt_sdp"
-
-testIstanceDrugPositionweightedProcessed = ".\\Test2013\\ProcessedtestPositionweighted.txt"
-trainIstanceDrugPositionweightedProcessed = ".\\Train2013\\ProcessedtrainPositionweighted.txt"
 #bert tokens
-train_pkl = 'F:/project_gyk/MyDDI(dependency)tests/Train2013/trainCsentence_bert_token.pkl'
-test_pkl = 'F:/project_gyk/MyDDI(dependency)tests/Test2013/testCsentence_bert_token.pkl'
+train_pkl = './Train2013/trainCsentence_bert_token.pkl'
+test_pkl = './Test2013/testCsentence_bert_token.pkl'
 train_entity_pkl = ''
 test_entity_pkl = ''
 
@@ -78,44 +64,6 @@ def dis(e1, e2):
     mut = multiply([e1, e2])
     con = concatenate([sub, mut], axis=-1)
     return con
-
-
-def bulidModel_4():
-    e1_kno = Input(shape=(200,), dtype='float32', name='e1_kno')
-    e2_kno = Input(shape=(200,), dtype='float32', name='e2_kno')
-    e1_pos = Input(shape=(154,), dtype='float32', name='pos1_input')
-    e2_pos = Input(shape=(154,), dtype='float32', name='pos2_input')
-    main_input = Input(shape=(154,), dtype='float32', name='main_input')  # (?,154)
-    #embedding_layer = Embedding(8000 + 1, 200, mask_zero=True, trainable=True)
-    embedding_layer = Embedding(num_word + 1, 200, mask_zero=True,trainable=False, weights=[embedding_matrix])
-    pos_embedding_layer = Embedding(240, 50, mask_zero=True, trainable=True)
-    e1_pos_vec = pos_embedding_layer(e1_pos)
-    e2_pos_vec = pos_embedding_layer(e2_pos)
-    wordVector = embedding_layer(main_input)  # (?,154,200)
-    all_vec = concatenate([wordVector, e1_pos_vec, e2_pos_vec], axis=-1)
-    # lstm
-    encoded_seq = Bidirectional(GRU(300, dropout=0.3, recurrent_dropout=0.3,return_sequences=True))(all_vec)
-    att_seq=Dense(200,activation='tanh')(encoded_seq)
-    att_e1_score=Dot(axes=[2,1])([att_seq,e1_kno])
-    att_e1_score=Softmax()(att_e1_score)
-    print(att_e1_score)
-    print(encoded_seq)
-    att_e1_res=Dot(axes=[1,1])([att_e1_score,encoded_seq])
-
-    att_seq = Dense(200, activation='tanh')(encoded_seq)
-    att_e2_score = Dot(axes=[2, 1])([att_seq, e2_kno])
-
-    att_e2_score = Softmax()(att_e2_score)
-    att_e2_res = Dot(axes=[1,1])([att_e2_score, att_e1_score])
-    print(encoded_seq.shape)
-    last_step = Bidirectional(GRU(300, dropout=0.3, recurrent_dropout=0.3, return_sequences=False))(encoded_seq)  # (?,?,600)
-    z=concatenate([att_e1_res,att_e2_res,last_step])
-    z= Dense(256, activation='tanh')(z)
-    main_output = Dense(5, activation='softmax', name='main_output')(z)  # (?,5)
-    model = Model(inputs=[main_input, e1_pos, e2_pos, e1_kno, e2_kno], outputs=main_output)
-    model.compile(optimizer="RMSprop", loss='categorical_crossentropy', metrics=['accuracy'])
-    print(model.summary())
-    return model
 
 def self_att_score(input):
     att_socre = Dense(1, activation='tanh')(input)
@@ -930,7 +878,7 @@ if __name__ == "__main__":
     train_e1_vec,train_e2_vec=entity_doc_index(entity1train,entity2train)
     test_e1_vec,test_e2_vec=entity_doc_index(entity1test,entity2test)
 
-    file = open('doc_embedding_matrix', 'rb')
+    file = open('./DrugDocumentEmbedding/doc_embedding_matrix', 'rb')
     doc_vec_embeding=pickle.load(file)
     print(len(doc_vec_embeding))
 
@@ -1024,7 +972,7 @@ if __name__ == "__main__":
                       'bert_mask':test_bert_masks,
                       'bert_m1':test_bert_zhou_m1,
                       'bert_m2':test_bert_zhou_m2}
-        m_path = 'F:/project_gyk/MyDDI(dependency)tests/model/bert_dis_att_zhouepoch-60F-0.7739656912209888.h5'
+        m_path = './model/...'
         predicted = predict(BERT_Input, m_path)
         # evaltuion
         # for i in range(1):
