@@ -4,7 +4,11 @@ python version = 3.5
 keras_bert version = 0.71.0  
 keras version = 2.1.5  
 tensorflow version = 1.12.0  
-numpy version = 1.15.4  
+numpy version = 1.15.4
+
+**Attention**
+
+You need to modify the code of the keras_bert library yourself to change the bert model output to an average pooling of the last four transformer outputs.
 
 **How to run**
 
