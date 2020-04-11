@@ -1,4 +1,7 @@
 # JBI-19-1015
+
+**Libraries needed to run this code**
+
 BioBERT version = 1.0  
 python version = 3.5  
 keras_bert version = 0.71.0  
