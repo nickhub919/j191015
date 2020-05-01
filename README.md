@@ -12,6 +12,16 @@ numpy version = 1.15.4
 **Attention**
 
 You need to modify the code of the keras_bert library yourself to change the bert model output to an average pooling of the last four transformer outputs.
+1. function:def load_trained_model_from_checkpoint(... **output_layer_num=4**, ...)
+2. bert.py function:get_model(): 
+...
+if len(outputs) > 1:
+            #transformed = keras.layers.Concatenate(name='Encoder-Output')(list(reversed(outputs)))
+            **transformed = keras.layers.Average(list(reversed(outputs)))**
+        else:
+            transformed = outputs[0]
+        return inputs, transformed
+...
 
 **How to run**
 
