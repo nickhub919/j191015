@@ -19,14 +19,14 @@ if max_len is not None:
             token_ids += [self._pad_index] * pad_len  
             segment_ids += [0] * pad_len  
   
-        **mask1 = [0]*250  
+        mask1 = [0]*250  
         mask2 = [0]*250  
         for i in range(0,250):  
             if token_ids[i]==3852 and token_ids[i+1]==1777:  
                 mask1[i+1] = 1  
             if  token_ids[i]==3852 and token_ids[i+1]==1479:  
-                mask2[i+1] = 1**  
-        return token_ids, segment_ids, **mask1, mask2**  
+                mask2[i+1] = 1  
+        return token_ids, segment_ids, mask1, mask2  
 ...  
 2. loader.py function:def load_trained_model_from_checkpoint(... **output_layer_num=4**, ...)  
 3. bert.py function:get_model():  
